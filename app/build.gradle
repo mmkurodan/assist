@@ -1,0 +1,54 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace "com.micklab.assist"
+    compileSdk 36
+
+    // 版付: release更新のため単調増加。分単位UNIXエポック(int32安全)。ローカル/CI 共通で機能。
+    // VERSION_CODE / VERSION_NAME env で上書き可（CIで固定したい場合など）。
+    def verCode = System.getenv("VERSION_CODE") ? System.getenv("VERSION_CODE").toInteger() : ((System.currentTimeMillis() / 60000L) as int)
+    def verName = System.getenv("VERSION_NAME") ?: new java.text.SimpleDateFormat("yyyy.MM.dd.HHmm").format(new java.util.Date())
+
+    signingConfigs {
+        release {
+            storeFile file("keystore.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD")
+            keyAlias System.getenv("KEY_ALIAS")
+            keyPassword System.getenv("KEY_PASSWORD")
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.micklab.assist"
+        minSdk 24
+        targetSdk 36
+        versionCode verCode
+        versionName verName
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        debug {
+        }
+        release {
+            // R8 によるコード圧縮・難読化・リソース圧縮を有効化する
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.7.0"
+}
